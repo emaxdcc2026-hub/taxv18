@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Tax &amp; FX Assistant</title>
+
+  <!-- PWA & Mobile App Metadata -->
+  <meta name="description" content="UAE 5% VAT tax refund, Esaad/Fazaa discount, recurring installment planner, and live 16-currency converter." />
+  <meta name="theme-color" content="#0b111a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Tax &amp; FX" />
+
+  <!-- Linked Manifest & Icons for /taxv18/ -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+  <link rel="icon" type="image/png" sizes="690x690" href="./icon-192.png" />
+  <link rel="apple-touch-icon" sizes="690x690" href="./icon-512.png" />
+
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS & BASE STYLES
+       ========================================================================== */
+    :root {
+      --bg-base: #0b111a;
+      --glass-bg: rgba(18, 27, 42, 0.78);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --card-bg: rgba(13, 20, 32, 0.88);
+      --accent-green: #10b981;
+      --accent-blue: #38bdf8;
+      --accent-indigo: #3b82f6;
+      --accent-amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg-base);
+      background-size: cover;
+      background-position: center;
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* ==========================================================================
+       2. MAIN APP SHELL (100dvh SINGLE-VIEWPORT LAYOUT)
+       ========================================================================== */
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      height: 100dvh;
+      margin: 0 auto;
+      padding: calc(6px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: linear-gradient(180deg, rgba(11, 17, 26, 0.86) 0%, rgba(11, 17, 26, 0.94) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* ==========================================================================
+       3. TOP HEADER BAR
+       ========================================================================== */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      min-height: 32px;
+      flex: 0 0 auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+
+    .brand-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .pill-btn {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 5px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.08s ease, background-color 0.15s ease;
+    }
+
+    .pill-btn:active {
+      transform: scale(0.96);
+    }
+
+    .log-count {
+      background: rgba(59, 130, 246, 0.25);
+      color: #93c5fd;
+      border-radius: 999px;
+      padding: 1px 5px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ==========================================================================
+       4. AED INPUT, TAX REFUND, ESAAD/FAZAA & 3x2 INSTALLMENT GRID
+       ========================================================================== */
+    .glass-panel {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 13px;
+      padding: 7px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+
+    .aed-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .aed-badge {
+      background: var(--accent-indigo);
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 7px;
+      letter-spacing: 0.4px;
+      flex-shrink: 0;
+    }
+
+    .aed-value {
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .primary-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .metric-box {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9px;
+      padding: 5px 8px;
+      min-width: 0;
+    }
+
+    .metric-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .metric-val {
+      font-size: 0.96rem;
+      font-weight: 800;
+      margin-top: 1px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .val-green {
+      color: var(--accent-green);
+    }
+
+    .val-blue {
+      color: var(--accent-blue);
+    }
+
+    .installment-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px 6px;
+    }
+
+    .inst-box {
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 7px;
+      padding: 3px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .inst-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .inst-val {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ==========================================================================
+       5. 16-COUNTRY LIVE CURRENCY GRID (BALANCED WITH NUMPAD)
+       ========================================================================== */
+    .fx-panel {
+      flex: 1 1 0;
+      min-height: 0;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 13px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .fx-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      flex: 0 0 auto;
+    }
+
+    .fx-status {
+      color: var(--accent-blue);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 700;
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      display: inline-block;
+      animation: pulseGlow 2s infinite;
+    }
+
+    .pulse-dot.cached {
+      background: var(--accent-amber);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .currency-grid {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-rows: repeat(4, minmax(0, 1fr));
+      gap: 4px;
+    }
+
+    .fx-cell {
+      background: rgba(13, 20, 32, 0.86);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 7px;
+      padding: 2px 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      overflow: hidden;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .fx-code {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .fx-amt {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      line-height: 1.2;
+    }
+
+    /* ==========================================================================
+       6. 3D EMBOSSED NUMERIC KEYPAD (BALANCED HEIGHT WITH CURRENCY GRID)
+       ========================================================================== */
+    .numpad {
+      flex: 1 1 0;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .num-key {
+      height: 100%;
+      min-height: 36px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      color: #f8fafc;
+      font-size: 1.15rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #060a12, inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      transition: transform 0.05s ease, box-shadow 0.05s ease;
+    }
+
+    .num-key:active,
+    .num-key.pressed {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #060a12;
+    }
+
+    .num-key.key-del {
+      background: linear-gradient(180deg, #4c1d24 0%, #2c1015 100%);
+      color: #fda4af;
+      font-size: 1rem;
+    }
+
+    /* ==========================================================================
+       7. MODALS (CALCULATOR, INQUIRY LOG & SETTINGS)
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 9, 16, 0.82);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 380px;
+      background: #111927;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 85dvh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    .calc-screen {
+      background: #090e16;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: right;
+      font-size: 1.35rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      min-height: 46px;
+      word-break: break-all;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .calc-btn {
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: #1e293b;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .calc-btn:active {
+      transform: translateY(1px);
+    }
+
+    .calc-btn.op {
+      background: #1d4ed8;
+    }
+
+    .calc-btn.eq {
+      background: #059669;
+    }
+
+    .log-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 240px;
+      overflow-y: auto;
+      font-size: 0.78rem;
+    }
+
+    .log-item {
+      background: #0b111a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 7px 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast-msg {
+      font-size: 0.72rem;
+      color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.28);
+      border-radius: 7px;
+      padding: 5px 8px;
+      display: none;
+    }
+
+    .toast-msg.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <!-- Top Header -->
+    <header class="top-bar">
+      <div class="brand">
+        <img id="brandIcon" class="brand-icon" src="./icon.svg" alt="Tax & FX Logo" />
+        <span class="brand-title">Tax &amp; FX Assistant</span>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="pill-btn" id="btnLog">
+          <span>Log</span>
+          <span class="log-count" id="logCountBadge">0</span>
+        </button>
+        <button type="button" class="pill-btn" id="btnCalc">Calc</button>
+        <button type="button" class="pill-btn" id="btnSettings">Settings</button>
+      </div>
+    </header>
+
+    <!-- Main Input, VAT Refund, Esaad/Fazaa & 3x2 Installment Grid -->
+    <section class="glass-panel" aria-label="Tax Refund and Installments">
+      <div class="aed-row">
+        <span class="aed-badge">AED</span>
+        <div class="aed-value" id="aedDisplay" aria-live="polite">0</div>
+      </div>
+
+      <div class="primary-metrics">
+        <div class="metric-box">
+          <div class="metric-label">Tax Refund (5% × 81%)</div>
+          <div class="metric-val val-green" id="taxRefundVal">0.00 AED</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Esaad / Fazaa</div>
+          <div class="metric-val val-blue" id="esaadVal">0.00 AED</div>
+        </div>
+      </div>
+
+      <!-- 3x2 Recurring Installments (No formulas shown on boxes) -->
+      <div class="installment-grid" aria-label="Installment Options">
+        <!-- Row 1: 3 mnth | 6 mnth -->
+        <div class="inst-box">
+          <span class="inst-label">3 mnth</span>
+          <span class="inst-val" id="m3Val">0.00</span>
+        </div>
+        <div class="inst-box">
+          <span class="inst-label">6 mnth</span>
+          <span class="inst-val" id="m6Val">0.00</span>
+        </div>
+
+        <!-- Row 2: 9 mnth | 12 mnth -->
+        <div class="inst-box">
+          <span class="inst-label">9 mnth</span>
+          <span class="inst-val" id="m9Val">0.00</span>
+        </div>
+        <div class="inst-box">
+          <span class="inst-label">12 mnth</span>
+          <span class="inst-val" id="m12Val">0.00</span>
+        </div>
+
+        <!-- Row 3: 4 mnth | 8 mnth -->
+        <div class="inst-box">
+          <span class="inst-label">4 mnth</span>
+          <span class="inst-val" id="m4Val">0.00</span>
+        </div>
+        <div class="inst-box">
+          <span class="inst-label">8 mnth</span>
+          <span class="inst-val" id="m8Val">0.00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16-Country Live Currency Grid -->
+    <section class="fx-panel" aria-label="16-Country Live Currency Converter">
+      <div class="fx-header">
+        <span>16-Country Live Rates (AED)</span>
+        <span class="fx-status">
+          <i class="pulse-dot" id="fxPulseDot"></i>
+          <span id="fxStatusText">Live • 5s</span>
+        </span>
+      </div>
+      <div class="currency-grid" id="currencyGrid"></div>
+    </section>
+
+    <!-- 3D Embossed Numeric Keypad -->
+    <section class="numpad" aria-label="Numeric Keypad">
+      <button type="button" class="num-key" data-key="1">1</button>
+      <button type="button" class="num-key" data-key="2">2</button>
+      <button type="button" class="num-key" data-key="3">3</button>
+      <button type="button" class="num-key" data-key="4">4</button>
+      <button type="button" class="num-key" data-key="5">5</button>
+      <button type="button" class="num-key" data-key="6">6</button>
+      <button type="button" class="num-key" data-key="7">7</button>
+      <button type="button" class="num-key" data-key="8">8</button>
+      <button type="button" class="num-key" data-key="9">9</button>
+      <button type="button" class="num-key" data-key=".">.</button>
+      <button type="button" class="num-key" data-key="0">0</button>
+      <button type="button" class="num-key key-del" id="btnBackspace" aria-label="Backspace (Hold to clear)">⌫</button>
+    </section>
+  </main>
+
+  <!-- Pop-up Standard Calculator Modal -->
+  <div class="modal-backdrop" id="calcModal" role="dialog" aria-modal="true" aria-label="Quick Calculator">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span>Quick Calculator</span>
+        <button type="button" class="pill-btn" data-close="calcModal">Close</button>
+      </div>
+      <div class="calc-screen" id="calcDisplay">0</div>
+      <div class="calc-grid">
+        <button type="button" class="calc-btn" data-c="C">C</button>
+        <button type="button" class="calc-btn" data-c="(">(</button>
+        <button type="button" class="calc-btn" data-c=")">)</button>
+        <button type="button" class="calc-btn op" data-c="/">÷</button>
+        <button type="button" class="calc-btn" data-c="7">7</button>
+        <button type="button" class="calc-btn" data-c="8">8</button>
+        <button type="button" class="calc-btn" data-c="9">9</button>
+        <button type="button" class="calc-btn op" data-c="*">×</button>
+        <button type="button" class="calc-btn" data-c="4">4</button>
+        <button type="button" class="calc-btn" data-c="5">5</button>
+        <button type="button" class="calc-btn" data-c="6">6</button>
+        <button type="button" class="calc-btn op" data-c="-">−</button>
+        <button type="button" class="calc-btn" data-c="1">1</button>
+        <button type="button" class="calc-btn" data-c="2">2</button>
+        <button type="button" class="calc-btn" data-c="3">3</button>
+        <button type="button" class="calc-btn op" data-c="+">+</button>
+        <button type="button" class="calc-btn" data-c="0">0</button>
+        <button type="button" class="calc-btn" data-c=".">.</button>
+        <button type="button" class="calc-btn eq" data-c="=">=</button>
+        <button type="button" class="calc-btn op" id="btnSendToAed">Use</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inquiry Log & Excel Export Modal -->
+  <div class="modal-backdrop" id="logModal" role="dialog" aria-modal="true" aria-label="Inquiry Log">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span>Inquiry Log</span>
+        <div style="display:flex;gap:6px;">
+          <button type="button" class="pill-btn" id="btnSaveEntry">+ Save</button>
+          <button type="button" class="pill-btn" id="btnExportXls">Export .xls</button>
+          <button type="button" class="pill-btn" data-close="logModal">Close</button>
+        </div>
+      </div>
+      <div class="toast-msg" id="logToast"></div>
+      <div class="log-list" id="logList"></div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span>Settings</span>
+        <button type="button" class="pill-btn" data-close="settingsModal">Close</button>
+      </div>
+      <div class="toast-msg" id="settingsToast"></div>
+      <label style="font-size:0.8rem;color:#cbd5e1;display:flex;flex-direction:column;gap:6px;">
+        Custom Wallpaper Image
+        <input type="file" id="bgUpload" accept="image/*" style="font-size:0.78rem;color:#94a3b8;" />
+      </label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="pill-btn" id="btnResetBg">Reset Wallpaper</button>
+        <button type="button" class="pill-btn" id="btnClearAll">Clear AED Input</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ========================================================================
+         1. 16-COUNTRY CURRENCY DEFINITIONS & FALLBACK RATES (1 AED = X)
+         ======================================================================== */
+      const CURRENCIES = [
+        { code: "USD", flag: "🇺🇸", fallback: 0.2723 },
+        { code: "EUR", flag: "🇪🇺", fallback: 0.2510 },
+        { code: "GBP", flag: "🇬🇧", fallback: 0.2145 },
+        { code: "INR", flag: "🇮🇳", fallback: 22.85 },
+        { code: "PHP", flag: "🇵🇭", fallback: 15.80 },
+        { code: "SAR", flag: "🇸🇦", fallback: 1.0211 },
+        { code: "KWD", flag: "🇰🇼", fallback: 0.0835 },
+        { code: "QAR", flag: "🇶🇦", fallback: 0.9912 },
+        { code: "OMR", flag: "🇴🇲", fallback: 0.1048 },
+        { code: "BHD", flag: "🇧🇭", fallback: 0.1026 },
+        { code: "EGP", flag: "🇪🇬", fallback: 13.45 },
+        { code: "PKR", flag: "🇵🇰", fallback: 75.60 },
+        { code: "CNY", flag: "🇨🇳", fallback: 1.97 },
+        { code: "JPY", flag: "🇯🇵", fallback: 41.80 },
+        { code: "AUD", flag: "🇦🇺", fallback: 0.4150 },
+        { code: "CAD", flag: "🇨🇦", fallback: 0.3780 }
+      ];
+
+      const STORAGE_KEYS = {
+        LOGS: "taxfx_v18_logs",
+        BG: "taxfx_v18_bg",
+        RATES: "taxfx_v18_rates"
+      };
+
+      const rates = {};
+      CURRENCIES.forEach((c) => {
+        rates[c.code] = c.fallback;
+      });
+
+      // Restore cached rates if available
+      try {
+        const cachedRates = JSON.parse(localStorage.getItem(STORAGE_KEYS.RATES) || "null");
+        if (cachedRates && typeof cachedRates === "object") {
+          CURRENCIES.forEach((c) => {
+            if (typeof cachedRates[c.code] === "number" && cachedRates[c.code] > 0) {
+              rates[c.code] = cachedRates[c.code];
+            }
+          });
+        }
+      } catch (_) {
+        // Ignore storage read error
+      }
+
+      let inputStr = "0";
+      let inquiryLogs = [];
+      try {
+        const savedLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOGS) || "[]");
+        if (Array.isArray(savedLogs)) inquiryLogs = savedLogs;
+      } catch (_) {
+        inquiryLogs = [];
+      }
+
+      /* ========================================================================
+         2. DOM REFERENCES & INLINE BRAND ICON FALLBACK
+         ======================================================================== */
+      const brandIcon = document.getElementById("brandIcon");
+      brandIcon.addEventListener("error", () => {
+        const fallbackSvg =
+          "data:image/svg+xml;utf8," +
+          encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0d1522"/><text x="32" y="34" text-anchor="middle" fill="#10b981" font-family="sans-serif" font-size="22" font-weight="800">5%</text><text x="32" y="50" text-anchor="middle" fill="#38bdf8" font-family="sans-serif" font-size="11" font-weight="800">FX</text></svg>'
+          );
+        brandIcon.src = fallbackSvg;
+      });
+
+      const aedDisplay = document.getElementById("aedDisplay");
+      const taxRefundVal = document.getElementById("taxRefundVal");
+      const esaadVal = document.getElementById("esaadVal");
+      const m3Val = document.getElementById("m3Val");
+      const m6Val = document.getElementById("m6Val");
+      const m9Val = document.getElementById("m9Val");
+      const m12Val = document.getElementById("m12Val");
+      const m4Val = document.getElementById("m4Val");
+      const m8Val = document.getElementById("m8Val");
+      const currencyGrid = document.getElementById("currencyGrid");
+      const fxStatusText = document.getElementById("fxStatusText");
+      const fxPulseDot = document.getElementById("fxPulseDot");
+      const logCountBadge = document.getElementById("logCountBadge");
+
+      /* ========================================================================
+         3. FORMATTING & CORE FINANCIAL CALCULATIONS
+         ======================================================================== */
+      function formatNum(num, decimals = 2) {
+        return Number(num || 0).toLocaleString("en-US", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals
+        });
+      }
+
+      function renderCurrencyGrid(aed) {
+        currencyGrid.innerHTML = CURRENCIES.map((c) => {
+          const converted = aed * (rates[c.code] || c.fallback);
+          const dec = converted >= 1000 ? 0 : 2;
+          return `
+            <div class="fx-cell" title="1 AED = ${(rates[c.code] || c.fallback).toFixed(4)} ${c.code}">
+              <span class="fx-code">${c.flag} ${c.code}</span>
+              <span class="fx-amt">${formatNum(converted, dec)}</span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function updateCalculations() {
+        const aed = parseFloat(inputStr) || 0;
+        aedDisplay.textContent = inputStr;
+
+        // Tax Refund = AED * 0.05 * 0.81 | Esaad / Fazaa = AED * 0.9905
+        taxRefundVal.textContent = `${formatNum(aed * 0.05 * 0.81)} AED`;
+        esaadVal.textContent = `${formatNum(aed * 0.9905)} AED`;
+
+        // 3x2 Installment Grid: AED / N (No formula labels on tiles)
+        m3Val.textContent = formatNum(aed / 3);
+        m6Val.textContent = formatNum(aed / 6);
+        m9Val.textContent = formatNum(aed / 9);
+        m12Val.textContent = formatNum(aed / 12);
+        m4Val.textContent = formatNum(aed / 4);
+        m8Val.textContent = formatNum(aed / 8);
+
+        renderCurrencyGrid(aed);
+      }
+
+      /* ========================================================================
+         4. LIVE CURRENCY FEED (5-SECOND REFRESH + FALLBACK)
+         ======================================================================== */
+      async function fetchLiveRates() {
+        try {
+          const res = await fetch("https://open.er-api.com/v6/latest/AED", { cache: "no-store" });
+          if (!res.ok) throw new Error("Primary feed unavailable");
+          const data = await res.json();
+          if (data && data.rates) {
+            CURRENCIES.forEach((c) => {
+              if (typeof data.rates[c.code] === "number" && data.rates[c.code] > 0) {
+                rates[c.code] = data.rates[c.code];
+              }
+            });
+            try {
+              localStorage.setItem(STORAGE_KEYS.RATES, JSON.stringify(rates));
+            } catch (_) {
+              // Ignore quota errors
+            }
+            fxPulseDot.classList.remove("cached");
+            fxStatusText.textContent = "Live • 5s";
+            updateCalculations();
+          }
+        } catch (_) {
+          fxPulseDot.classList.add("cached");
+          fxStatusText.textContent = "Cached • 5s";
+        }
+      }
+
+      /* ========================================================================
+         5. 3D EMBOSSED KEYPAD & PHYSICAL KEYBOARD INPUT
+         ======================================================================== */
+      function handleDigitKey(key) {
+        if (key === ".") {
+          if (!inputStr.includes(".")) inputStr += ".";
+        } else if (inputStr === "0") {
+          inputStr = key;
+        } else if (inputStr.length < 12) {
+          const dotIdx = inputStr.indexOf(".");
+          if (dotIdx !== -1 && inputStr.length - dotIdx > 2) return;
+          inputStr += key;
+        }
+        updateCalculations();
+      }
+
+      function handleBackspace() {
+        inputStr = inputStr.length > 1 ? inputStr.slice(0, -1) : "0";
+        updateCalculations();
+      }
+
+      document.querySelectorAll(".num-key[data-key]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          handleDigitKey(btn.getAttribute("data-key"));
+        });
+      });
+
+      const backspaceBtn = document.getElementById("btnBackspace");
+      let clearTimer = null;
+
+      backspaceBtn.addEventListener("click", handleBackspace);
+      backspaceBtn.addEventListener("pointerdown", () => {
+        clearTimer = setTimeout(() => {
+          inputStr = "0";
+          updateCalculations();
+        }, 550);
+      });
+      backspaceBtn.addEventListener("pointerup", () => clearTimeout(clearTimer));
+      backspaceBtn.addEventListener("pointerleave", () => clearTimeout(clearTimer));
+
+      window.addEventListener("keydown", (e) => {
+        if (document.querySelector(".modal-backdrop.open")) return;
+        if (/^[0-9.]$/.test(e.key)) {
+          e.preventDefault();
+          handleDigitKey(e.key);
+          const btn = document.querySelector(`.num-key[data-key="${CSS.escape(e.key)}"]`);
+          if (btn) {
+            btn.classList.add("pressed");
+            setTimeout(() => btn.classList.remove("pressed"), 90);
+          }
+        } else if (e.key === "Backspace") {
+          e.preventDefault();
+          handleBackspace();
+          backspaceBtn.classList.add("pressed");
+          setTimeout(() => backspaceBtn.classList.remove("pressed"), 90);
+        } else if (e.key === "Escape") {
+          inputStr = "0";
+          updateCalculations();
+        }
+      });
+
+      /* ========================================================================
+         6. MODALS (CALCULATOR, INQUIRY LOG & SETTINGS)
+         ======================================================================== */
+      function openModal(id) {
+        document.getElementById(id).classList.add("open");
+      }
+
+      function closeModal(id) {
+        document.getElementById(id).classList.remove("open");
+      }
+
+      function showToast(id, message) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = message;
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), 2200);
+      }
+
+      document.getElementById("btnCalc").addEventListener("click", () => openModal("calcModal"));
+      document.getElementById("btnLog").addEventListener("click", () => {
+        renderLogs();
+        openModal("logModal");
+      });
+      document.getElementById("btnSettings").addEventListener("click", () => openModal("settingsModal"));
+
+      document.querySelectorAll("[data-close]").forEach((btn) => {
+        btn.addEventListener("click", () => closeModal(btn.getAttribute("data-close")));
+      });
+
+      document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+        backdrop.addEventListener("click", (e) => {
+          if (e.target === backdrop) backdrop.classList.remove("open");
+        });
+      });
+
+      // Pop-up Calculator Logic
+      let calcExpr = "";
+      const calcDisplay = document.getElementById("calcDisplay");
+
+      document.querySelectorAll(".calc-btn[data-c]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.getAttribute("data-c");
+          if (val === "C") {
+            calcExpr = "";
+            calcDisplay.textContent = "0";
+          } else if (val === "=") {
+            try {
+              const sanitized = calcExpr.replace(/[^0-9+\-*/.()]/g, "");
+              const result = Function(`"use strict"; return (${sanitized || 0})`)();
+              calcExpr = Number.isFinite(result) ? String(Number(result.toFixed(4))) : "0";
+              calcDisplay.textContent = calcExpr;
+            } catch (_) {
+              calcDisplay.textContent = "Error";
+              calcExpr = "";
+            }
+          } else {
+            calcExpr += val;
+            calcDisplay.textContent = calcExpr;
+          }
+        });
+      });
+
+      document.getElementById("btnSendToAed").addEventListener("click", () => {
+        const val = parseFloat(calcDisplay.textContent);
+        if (Number.isFinite(val) && val >= 0) {
+          inputStr = String(Number(val.toFixed(2)));
+          updateCalculations();
+        }
+        closeModal("calcModal");
+      });
+
+      // Inquiry Log & .xls Export
+      function updateLogBadge() {
+        logCountBadge.textContent = String(inquiryLogs.length);
+      }
+
+      function renderLogs() {
+        updateLogBadge();
+        const logList = document.getElementById("logList");
+        if (!inquiryLogs.length) {
+          logList.innerHTML =
+            '<div style="color:#94a3b8;text-align:center;padding:12px;">No saved inquiries yet. Tap + Save to record current AED calculation.</div>';
+          return;
+        }
+        logList.innerHTML = inquiryLogs
+          .map(
+            (item) => `
+            <div class="log-item">
+              <div>
+                <strong>${formatNum(item.aed)} AED</strong>
+                <div style="color:#94a3b8;font-size:0.7rem;">Refund: ${formatNum(item.refund)} • Esaad: ${formatNum(item.esaad)}</div>
+              </div>
+              <span style="color:#64748b;font-size:0.68rem;">${item.time}</span>
+            </div>
+          `
+          )
+          .join("");
+      }
+
+      document.getElementById("btnSaveEntry").addEventListener("click", () => {
+        const aed = parseFloat(inputStr) || 0;
+        inquiryLogs.unshift({
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          aed,
+          refund: aed * 0.05 * 0.81,
+          esaad: aed * 0.9905
+        });
+        inquiryLogs = inquiryLogs.slice(0, 50);
+        try {
+          localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(inquiryLogs));
+        } catch (_) {
+          // Ignore quota error
+        }
+        renderLogs();
+        showToast("logToast", "Saved current AED calculation.");
+      });
+
+      document.getElementById("btnExportXls").addEventListener("click", () => {
+        const exportRows = inquiryLogs.length
+          ? inquiryLogs
+          : [
+              {
+                time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                aed: parseFloat(inputStr) || 0,
+                refund: (parseFloat(inputStr) || 0) * 0.05 * 0.81,
+                esaad: (parseFloat(inputStr) || 0) * 0.9905
+              }
+            ];
+
+        const rows = [
+          ["Time", "AED Amount", "Tax Refund (AED)", "Esaad/Fazaa (AED)", "3 Mnth", "6 Mnth", "9 Mnth", "12 Mnth", "4 Mnth", "8 Mnth"],
+          ...exportRows.map((i) => [
+            i.time,
+            i.aed.toFixed(2),
+            i.refund.toFixed(2),
+            i.esaad.toFixed(2),
+            (i.aed / 3).toFixed(2),
+            (i.aed / 6).toFixed(2),
+            (i.aed / 9).toFixed(2),
+            (i.aed / 12).toFixed(2),
+            (i.aed / 4).toFixed(2),
+            (i.aed / 8).toFixed(2)
+          ])
+        ];
+        const csv = rows.map((r) => r.join("\t")).join("\n");
+        const blob = new Blob([csv], { type: "application/vnd.ms-excel" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "tax-fx-inquiries.xls";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        showToast("logToast", "Exported tax-fx-inquiries.xls");
+      });
+
+      // Custom Wallpaper Settings
+      try {
+        const savedBg = localStorage.getItem(STORAGE_KEYS.BG);
+        if (savedBg) document.body.style.backgroundImage = `url("${savedBg}")`;
+      } catch (_) {
+        // Ignore storage error
+      }
+
+      document.getElementById("bgUpload").addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = typeof reader.result === "string" ? reader.result : "";
+          if (!result) return;
+          document.body.style.backgroundImage = `url("${result}")`;
+          try {
+            localStorage.setItem(STORAGE_KEYS.BG, result);
+          } catch (_) {
+            // Ignore quota error
+          }
+          showToast("settingsToast", "Wallpaper updated.");
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById("btnResetBg").addEventListener("click", () => {
+        try {
+          localStorage.removeItem(STORAGE_KEYS.BG);
+        } catch (_) {
+          // Ignore
+        }
+        document.body.style.backgroundImage = "";
+        document.getElementById("bgUpload").value = "";
+        showToast("settingsToast", "Wallpaper reset.");
+      });
+
+      document.getElementById("btnClearAll").addEventListener("click", () => {
+        inputStr = "0";
+        updateCalculations();
+        closeModal("settingsModal");
+      });
+
+      /* ========================================================================
+         7. INITIALIZATION, 5-SECOND LIVE RATES & SERVICE WORKER (/taxv18/)
+         ======================================================================== */
+      updateLogBadge();
+      updateCalculations();
+      fetchLiveRates();
+      setInterval(fetchLiveRates, 5000);
+
+      // Register Service Worker only on valid http/https pages (skip blob:/file: preview sandboxes)
+      if (
+        "serviceWorker" in navigator &&
+        (window.location.protocol === "http:" || window.location.protocol === "https:")
+      ) {
+        window.addEventListener("load", () => {
+          const swScope = window.location.pathname.startsWith("/taxv18") ? "/taxv18/" : "./";
+          navigator.serviceWorker
+            .register("./sw.js", { scope: swScope })
+            .catch(() => {});
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
