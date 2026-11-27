@@ -1,0 +1,45 @@
+{
+  "name": "Tax & FX Assistant",
+  "short_name": "Tax & FX",
+  "description": "UAE 5% VAT tax refund, Esaad/Fazaa discount, recurring installment planner, and live 16-currency converter.",
+  "id": "/taxv18/",
+  "start_url": "/taxv18/",
+  "scope": "/taxv18/",
+  "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay"],
+  "orientation": "portrait",
+  "background_color": "#0b111a",
+  "theme_color": "#0b111a",
+  "dir": "ltr",
+  "lang": "en",
+  "categories": ["finance", "utilities"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-192.png",
+      "sizes": "690x690",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "690x690",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./screenshot-mobile.png",
+      "sizes": "679x1054",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tax Refund, Esaad/Fazaa, Installments & Currency Converter"
+    }
+  ]
+}
